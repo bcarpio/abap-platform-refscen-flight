@@ -1,7 +1,7 @@
 @AccessControl.authorizationCheck: #MANDATORY
 @Metadata.allowExtensions: true
 @EndUserText.label: 'Draft Query View /DMO/D_TRAVEL_CD'
-define view entity /DMO/R_TRAVELTPDRAFT_CD
+define view entity /DMO/R_TravelTPDraft_CD
   as select from /dmo/d_travel_cd
 {
   key traveluuid as TravelUuid,
