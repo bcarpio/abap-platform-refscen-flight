@@ -17,6 +17,8 @@ CLASS lhc_travel DEFINITION INHERITING FROM cl_abap_behavior_handler
       IMPORTING keys FOR ACTION Travel~rejectTravel RESULT result.
     METHODS deductDiscount FOR MODIFY
       IMPORTING keys FOR ACTION Travel~deductDiscount RESULT result.
+    METHODS GetDefaultsFordeductDiscount FOR READ
+      IMPORTING keys FOR FUNCTION Travel~GetDefaultsFordeductDiscount RESULT result.
     METHODS reCalcTotalPrice FOR MODIFY
       IMPORTING keys FOR ACTION Travel~reCalcTotalPrice.
 
@@ -53,6 +55,8 @@ CLASS lhc_travel DEFINITION INHERITING FROM cl_abap_behavior_handler
 
     METHODS resume FOR MODIFY
       IMPORTING keys FOR ACTION Travel~Resume.
+    METHODS validateBookingFee FOR VALIDATE ON SAVE
+      IMPORTING keys FOR Travel~validateBookingFee.
 
 
 
@@ -954,5 +958,54 @@ CLASS lhc_travel IMPLEMENTATION.
 
 
 
+
+  METHOD GetDefaultsFordeductDiscount.
+
+    READ ENTITIES OF /DMO/R_TRAVEL_D
+      IN LOCAL MODE
+      ENTITY Travel
+        FIELDS ( TotalPrice )
+        WITH CORRESPONDING #( keys )
+      RESULT DATA(travels)
+      FAILED failed.
+
+    LOOP AT travels INTO DATA(travel).
+      IF travel-TotalPrice >= 5000.
+        APPEND VALUE #( %tky                     = travel-%tky
+                        %param-discount_percent  = 20 ) TO result.
+      ELSE.
+        APPEND VALUE #( %tky                     = travel-%tky
+                        %param-discount_percent  = 10 ) TO result.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD validateBookingFee.
+
+    READ ENTITIES OF /DMO/R_Travel_D IN LOCAL MODE
+      ENTITY travel
+        FIELDS ( BookingFee )
+        WITH CORRESPONDING #( keys )
+      RESULT DATA(travels).
+
+    LOOP AT travels INTO DATA(travel).
+      APPEND VALUE #(  %tky               = travel-%tky
+                       %state_area        = 'VALIDATE_BOOKINGFEE'
+                    ) TO reported-travel.
+      " Raise message for booking fee < 0
+      IF travel-BookingFee < 0.
+        APPEND VALUE #( %tky                = travel-%tky ) TO failed-travel.
+        APPEND VALUE #( %tky                = travel-%tky
+                        %state_area         = 'VALIDATE_BOOKINGFEE'
+                        %msg                = NEW /dmo/cm_flight_messages(
+                                                      textid      = /dmo/cm_flight_messages=>booking_fee_invalid
+                                                      severity    = if_abap_behv_message=>severity-error )
+                        %element-BookingFee = if_abap_behv=>mk-on
+                      ) TO reported-travel.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
 
 ENDCLASS.

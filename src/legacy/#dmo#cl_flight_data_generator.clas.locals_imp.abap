@@ -592,9 +592,9 @@ CLASS lcl_airport_data_generator IMPLEMENTATION.
           ( airport_id = 'RTM'    name = 'Rotterdam The Hague Airport'            city = 'Rotterdam'                         country = 'NL' )
           ( airport_id = 'FCO'    name = 'Leonardo da Vinci–Fiumicino Airport'    city = 'Rome'                              country = 'IT' )
           ( airport_id = 'VCE'    name = 'Venice Marco Polo Airport'              city = 'Venice'                            country = 'IT' )
-          ( airport_id = 'LCY'    name = 'London City Airport'                    city = 'London'                            country = 'UK' )
-          ( airport_id = 'LGW'    name = 'Gatwick Airport'                        city = 'London'                            country = 'UK' )
-          ( airport_id = 'LHR'    name = 'Heathrow Airport'                       city = 'London'                            country = 'UK' )
+          ( airport_id = 'LCY'    name = 'London City Airport'                    city = 'London'                            country = 'GB' )
+          ( airport_id = 'LGW'    name = 'Gatwick Airport'                        city = 'London'                            country = 'GB' )
+          ( airport_id = 'LHR'    name = 'Heathrow Airport'                       city = 'London'                            country = 'GB' )
           ( airport_id = 'MAD'    name = 'Adolfo Suárez Madrid–Barajas Airport'   city = 'Madrid'                            country = 'ES' )
           ( airport_id = 'VKO'    name = 'Vnukovo International Airport'          city = 'Moscow'                            country = 'RU' )
           ( airport_id = 'SVO'    name = 'Sheremetyevo International Airport'     city = 'Moscow'                            country = 'RU' )
@@ -1958,7 +1958,8 @@ CLASS lcl_travel_data_generator DEFINITION CREATE PRIVATE.
           VALUE(rs_flight)   TYPE /dmo/flight,
       generate_booking_supplements
         IMPORTING
-          iv_booking_id  TYPE /dmo/booking-booking_id
+          iv_booking_id    TYPE /dmo/booking-booking_id
+          iv_currency_code TYPE /dmo/currency_code
         RETURNING
           VALUE(rt_data) TYPE tt_booking_supplements,
       generate_description
@@ -2065,12 +2066,12 @@ CLASS lcl_travel_data_generator IMPLEMENTATION.
           begin_date    = lt_bookings[ 1 ]-flight_date
           end_date      = lt_bookings[ lines( lt_bookings ) ]-flight_date
           booking_fee   = lv_booking_fee
-          total_price   = lv_booking_fee + REDUCE /dmo/travel-total_price( INIT sum = 0
+          total_price   = lv_booking_fee + REDUCE /dmo/travel-total_price( INIT sum = CONV /dmo/flight_price( 0 )
                                                           FOR booking IN lt_bookings
                                                           NEXT
                                                            sum = sum
                                                                  + booking-flight_price
-                                                                 + REDUCE /dmo/flight_price( INIT sum_supplement = 0
+                                                                 + REDUCE /dmo/flight_price( INIT sum_supplement = CONV /dmo/flight_price( 0 )
                                                                                              FOR booking_supplement IN booking-booking_supplements
                                                                                              NEXT sum_supplement = sum_supplement + booking_supplement-price )
                                                         )
@@ -2257,7 +2258,8 @@ CLASS lcl_travel_data_generator IMPLEMENTATION.
             flight_date         = <flight>-flight_date
             flight_price        = lv_price
             currency_code       = <flight>-currency_code
-            booking_supplements = generate_booking_supplements( CONV /dmo/booking-booking_id( lv_booking_id + i ) )
+            booking_supplements = generate_booking_supplements( iv_booking_id    = CONV /dmo/booking-booking_id( lv_booking_id + i )
+                                                                iv_currency_code = <flight>-currency_code )
           )
       ) TO rt_bookings.
 
@@ -2318,7 +2320,7 @@ CLASS lcl_travel_data_generator IMPLEMENTATION.
             booking_supplement_id = i
             supplement_id         = gt_supplements[ j ]-supplement_id
             price                 = gt_supplements[ j ]-price
-            currency_code         = gt_supplements[ j ]-currency_code
+            currency_code         = iv_currency_code
           )
     ).
   ENDMETHOD.

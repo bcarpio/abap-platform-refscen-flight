@@ -106,6 +106,18 @@ CLASS ltc_travel DEFINITION FINAL FOR TESTING
       "! returns messages.
       validatedates_not_valid      FOR TESTING,
 
+      "! Calls { @link ..lhc_travel.METH:validateBookingFee }
+      "! and checks if booking fee is valid.
+      validate_booking_fee_valid   FOR TESTING,
+
+      "! Calls { @link ..lhc_travel.METH:validateBookingFee }
+      "! and checks if invalid booking fee returns messages.
+      validate_booking_fee_invalid FOR TESTING,
+
+      "! Calls { @link ..lhc_travel.METH:validateBookingFee }
+      "! and checks if initial booking fee is valid.
+      validate_booking_fee_initial FOR TESTING,
+
       "! Calls { @link ..lhc_travel.METH:get_instance_features }
       "! using travels with an <em>accepted</em>, <em>rejected</em>,
       "! <em>open</em> and unknown status.
@@ -167,7 +179,11 @@ CLASS ltc_travel DEFINITION FINAL FOR TESTING
       "! Calls { @link ..lhc_travel.METH:validatecurrencycode }
       "! and checks if invalid permutations of sets of status
       "! returns messages.
-      validate_currency_not_valid      FOR TESTING.
+      validate_currency_not_valid      FOR TESTING,
+
+      "! Calls { @link ..lhc_travel.METH:GetDefaultsFordeductDiscount }
+      "! and checks the defaulting for total prizes
+      getdefaultsfordiscount FOR TESTING.
 
 
 
@@ -1729,5 +1745,162 @@ CLASS ltc_travel IMPLEMENTATION.
   ENDMETHOD.
 
 
+
+  METHOD getdefaultsfordiscount.
+
+    DATA:
+      travel_mock_data   TYPE STANDARD TABLE OF /dmo/a_travel_d,
+      travels_to_test    TYPE TABLE FOR FUNCTION IMPORT /dmo/r_travel_d\\travel~GetDefaultsFordeductDiscount,
+      exp_travels_action TYPE TABLE FOR FUNCTION RESULT /dmo/r_travel_d\\travel~GetDefaultsFordeductDiscount,
+      result             TYPE TABLE FOR FUNCTION RESULT /dmo/r_travel_d\\travel~GetDefaultsFordeductDiscount,
+      failed             TYPE RESPONSE FOR FAILED   EARLY /dmo/r_travel_d,
+      reported           TYPE RESPONSE FOR REPORTED EARLY /dmo/r_travel_d.
+
+      travel_mock_data = VALUE #( ( travel_uuid = uuid1 total_price = '' )
+                                  ( travel_uuid = uuid2 total_price = '0' )
+                                  ( travel_uuid = uuid3 total_price = '1' )
+                                  ( travel_uuid = uuid4 total_price = '5000' )
+                                  ( travel_uuid = uuid5 total_price = '5001' ) ).
+
+      cds_test_environment->insert_test_data( travel_mock_data ).
+
+      exp_travels_action = VALUE #(
+        (
+          %is_draft     = if_abap_behv=>mk-off
+          traveluuid    = uuid1
+          %param        = VALUE #(
+              discount_percent = '10' ) )
+        ( %is_draft     = if_abap_behv=>mk-off
+          traveluuid    = uuid2
+          %param        = VALUE #(
+              discount_percent = '10' ) )
+        ( %is_draft   = if_abap_behv=>mk-off
+          traveluuid = uuid3
+          %param = VALUE #(
+              discount_percent = '10' ) )
+        ( %is_draft   = if_abap_behv=>mk-off
+          traveluuid = uuid4
+          %param = VALUE #(
+              discount_percent = '20' ) )
+        ( %is_draft   = if_abap_behv=>mk-off
+          traveluuid = uuid5
+          %param = VALUE #(
+              discount_percent = '20' ) )
+         ).
+
+      travels_to_test = CORRESPONDING #( travel_mock_data MAPPING TravelUUID = travel_uuid EXCEPT * ).
+
+      class_under_test->getdefaultsfordeductdiscount(
+        EXPORTING
+          keys     = travels_to_test
+        CHANGING
+          result   = result
+          failed   = failed
+          reported = reported
+      ).
+
+      cl_abap_unit_assert=>assert_initial( failed ).
+      cl_abap_unit_assert=>assert_initial( reported ).
+
+      cl_abap_unit_assert=>assert_equals( exp = exp_travels_action act = result ).
+
+  ENDMETHOD.
+
+  METHOD validate_booking_fee_valid.
+
+    DATA:
+      travel_mock_data TYPE STANDARD TABLE OF /dmo/a_travel_d,
+      travels_to_test  TYPE TABLE FOR VALIDATION /dmo/r_travel_d\\travel~validateBookingFee,
+      failed           TYPE RESPONSE FOR FAILED   LATE /dmo/r_travel_d,
+      reported         TYPE RESPONSE FOR REPORTED LATE /dmo/r_travel_d.
+
+    travel_mock_data = VALUE #( ( travel_uuid = uuid1  booking_fee = '1024' ) ).
+    cds_test_environment->insert_test_data( travel_mock_data ).
+
+    travels_to_test = CORRESPONDING #( travel_mock_data MAPPING traveluuid = travel_uuid ).
+
+    class_under_test->validatebookingfee(
+        EXPORTING
+          keys     = travels_to_test
+        CHANGING
+          failed   = failed
+          reported = reported
+      ).
+
+    cl_abap_unit_assert=>assert_initial( failed ).
+
+    cl_abap_unit_assert=>assert_not_initial( reported ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = lines( travels_to_test )
+        act = lines( reported-travel )
+      ).
+
+  ENDMETHOD.
+
+  METHOD validate_booking_fee_invalid.
+
+    DATA:
+      travel_mock_data TYPE STANDARD TABLE OF /dmo/a_travel_d,
+      travels_to_test  TYPE TABLE FOR VALIDATION /dmo/r_travel_d\\travel~validateBookingFee,
+      failed           TYPE RESPONSE FOR FAILED   LATE /dmo/r_travel_d,
+      reported         TYPE RESPONSE FOR REPORTED LATE /dmo/r_travel_d.
+
+    travel_mock_data = VALUE #( ( travel_uuid = uuid1  booking_fee = '-1024' ) ).
+    cds_test_environment->insert_test_data( travel_mock_data ).
+
+    travels_to_test = CORRESPONDING #( travel_mock_data MAPPING traveluuid = travel_uuid ).
+
+    class_under_test->validatebookingfee(
+        EXPORTING
+          keys     = travels_to_test
+        CHANGING
+          failed   = failed
+          reported = reported
+      ).
+
+    cl_abap_unit_assert=>assert_not_initial( failed ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = 1
+        act = lines( failed-travel )
+      ).
+
+    cl_abap_unit_assert=>assert_not_initial( reported ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = 2
+        act = lines( reported-travel )
+      ).
+
+  ENDMETHOD.
+
+  METHOD validate_booking_fee_initial.
+
+    DATA:
+      travel_mock_data TYPE STANDARD TABLE OF /dmo/a_travel_d,
+      travels_to_test  TYPE TABLE FOR VALIDATION /dmo/r_travel_d\\travel~validateBookingFee,
+      failed           TYPE RESPONSE FOR FAILED   LATE /dmo/r_travel_d,
+      reported         TYPE RESPONSE FOR REPORTED LATE /dmo/r_travel_d.
+
+    travel_mock_data = VALUE #( ( travel_uuid = uuid1  booking_fee = '' ) ).
+    cds_test_environment->insert_test_data( travel_mock_data ).
+
+    travels_to_test = CORRESPONDING #( travel_mock_data MAPPING traveluuid = travel_uuid ).
+
+    class_under_test->validatebookingfee(
+        EXPORTING
+          keys     = travels_to_test
+        CHANGING
+          failed   = failed
+          reported = reported
+      ).
+
+    cl_abap_unit_assert=>assert_initial( failed ).
+
+    cl_abap_unit_assert=>assert_not_initial( reported ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = lines( travels_to_test )
+        act = lines( reported-travel )
+      ).
+
+  ENDMETHOD.
 
 ENDCLASS.

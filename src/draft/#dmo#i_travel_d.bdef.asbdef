@@ -1,6 +1,9 @@
 interface;
 use draft;
 use side effects;
+
+with privileged mode;
+
 define behavior for /DMO/I_Travel_D alias Travel
 use etag
 
@@ -12,10 +15,12 @@ use etag
   use action acceptTravel;
   use action rejectTravel;
   use action deductDiscount;
+  use function GetDefaultsFordeductDiscount;
 
   use action validateAgencyID;
   use action validateCustomerID;
   use action validateDateRange;
+  use action validateBookingCharge;
 
   use action Edit;
   use action Activate;
@@ -32,6 +37,8 @@ use etag
   use update;
   use delete;
 
+  use action validateFlightCosts;
+
   use association _BookingSupplement { create; with draft; }
   use association _Travel { with draft; }
 }
@@ -41,6 +48,8 @@ use etag
 {
   use update;
   use delete;
+
+  use action validateSupplementPrice;
 
   use association _Travel { with draft; }
   use association _Booking { with draft; }
