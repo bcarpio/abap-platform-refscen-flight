@@ -23,8 +23,6 @@ CLASS lhc_Agency DEFINITION INHERITING FROM cl_abap_behavior_handler
       IMPORTING keys FOR /DMO/Agency~/DMO/determineCountryCode.
     METHODS determineDiallingCode FOR DETERMINE ON MODIFY
       IMPORTING keys FOR /DMO/Agency~/DMO/determineDiallingCode.
-*    METHODS get_global_authorizations FOR GLOBAL AUTHORIZATION
-*      IMPORTING REQUEST requested_authorizations FOR /DMO/Agency RESULT result.
     METHODS createFromTemplate FOR MODIFY
       IMPORTING keys FOR ACTION /DMO/Agency~/DMO/createFromTemplate.
 
@@ -147,24 +145,21 @@ CLASS lhc_Agency IMPLEMENTATION.
 
   ENDMETHOD.
 
-*  METHOD get_global_authorizations.
-*  ENDMETHOD.
-
 
   METHOD createFromTemplate.
 
     READ ENTITIES OF /DMO/I_AgencyTP IN LOCAL MODE
       ENTITY /DMO/Agency
-        FIELDS ( CountryCode PostalCode City Street ) WITH CORRESPONDING #( keys )
+        FIELDS ( name EMailAddress CountryCode PostalCode City Street ) WITH CORRESPONDING #( keys )
       RESULT DATA(agencies).
 
     DATA: agencies_to_create TYPE TABLE FOR CREATE /DMO/I_AgencyTP.
     LOOP AT keys INTO DATA(key).
-      READ TABLE agencies INTO DATA(agency) WITH KEY id COMPONENTS %tky = key-%tky.
+      READ TABLE agencies INTO DATA(agency) WITH KEY id COMPONENTS  %tky = key-%tky .
       IF sy-subrc EQ 0.
         APPEND CORRESPONDING #( agency EXCEPT agencyid ) TO agencies_to_create ASSIGNING FIELD-SYMBOL(<agency_to_create>).
         <agency_to_create>-%cid = key-%cid.
-        <agency_to_create>-%is_draft = if_abap_behv=>mk-on.  "The action always creates draft instances
+*        <agency_to_create>-%is_draft = if_abap_behv=>mk-on.  "The action always creates draft instances
       ELSE.
         APPEND CORRESPONDING #( key MAPPING %fail = DEFAULT VALUE #( cause = if_abap_behv=>cause-not_found ) ) TO failed-/dmo/agency.
       ENDIF.
@@ -172,7 +167,7 @@ CLASS lhc_Agency IMPLEMENTATION.
 
     MODIFY ENTITIES OF /DMO/I_AgencyTP IN LOCAL MODE
       ENTITY /DMO/Agency
-        CREATE FIELDS ( CountryCode PostalCode City Street ) WITH agencies_to_create
+        CREATE FIELDS (  name EMailAddress CountryCode PostalCode City Street ) WITH agencies_to_create
       MAPPED mapped.
 
   ENDMETHOD.

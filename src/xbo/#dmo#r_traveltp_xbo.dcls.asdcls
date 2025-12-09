@@ -1,0 +1,11 @@
+@EndUserText.label: 'Mapping role for /DMO/R_TRAVELTP_XBO'
+@MappingRole: true
+define role /DMO/R_TRAVELTP_XBO {
+  grant
+    select
+      on
+        /DMO/R_TRAVELTP_XBO
+          where
+            true;
+            
+}

@@ -26,6 +26,7 @@ use etag
   use delete;
 
   use action changeNextSibling;
+  use action copy;
 
   use association _Agency { with draft; }
   use association _Manager

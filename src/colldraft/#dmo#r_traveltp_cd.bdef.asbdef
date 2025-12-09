@@ -6,10 +6,10 @@ extensible;
 define behavior for /DMO/R_TravelTP_CD alias Travel
 persistent table /dmo/a_travel_cd
 extensible
-draft table /dmo/d_travel_cd query /DMO/R_TravelTPDraft_CD
+draft table /dmo/d_travel_cd query /DMO/R_TravelDraft_CD
 etag master LocalLastChangedAt
 lock master total etag LastChangedAt
-authorization master ( global, instance )
+authorization master ( instance, global )
 {
   field ( readonly )
   TravelUuid,
@@ -25,7 +25,7 @@ authorization master ( global, instance )
   field ( readonly : update, mandatory : create )
   TravelId;
 
-  create ( authorization : global );
+  create;
   update;
   delete;
 

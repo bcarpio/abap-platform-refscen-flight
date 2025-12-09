@@ -1,0 +1,4 @@
+@EndUserText.label: 'Service Def for Entity Travel'
+define service /DMO/UI_TRAVELTP_O4_XBO {
+  expose /DMO/C_TRAVELTP_XBO as Travel;
+}

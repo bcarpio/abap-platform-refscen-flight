@@ -1,0 +1,11 @@
+@EndUserText.label: 'Mapping role for /DMO/R_TRAVELDRAFT_XBO'
+@MappingRole: true
+define role /DMO/R_TRAVELDRAFT_XBO {
+  grant
+    select
+      on
+        /DMO/R_TRAVELDRAFT_XBO
+          where
+            inheriting conditions from entity /DMO/R_TRAVELTP_XBO;
+            
+}

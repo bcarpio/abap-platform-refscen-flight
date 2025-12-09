@@ -92,6 +92,7 @@ etag master LocalLastChangedAt
     field ( hierarchy-index ) SiblingOrderNumber;
     ascending association _Manager;
     descending association _Employee { with cascading delete; }
+    copy action copy;
   }
 
   validation validationSalaryPositive on save { create; field Salary; }
