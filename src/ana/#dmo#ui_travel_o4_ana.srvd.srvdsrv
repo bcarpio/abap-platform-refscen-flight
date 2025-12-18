@@ -1,12 +1,5 @@
-@EndUserText: {
-  label: 'Service Definition for Travel'
-}
-@ObjectModel: {
-  leadingEntity: {
-    name: '/DMO/C_TRAVEL_ANA'
-  }
-}
-define service /DMO/UI_TRAVEL_O4_ANA
-  provider contracts odata_v4_ui {
+@EndUserText.label: 'Service Definition for Travel'
+@ObjectModel.leadingEntity.name: '/DMO/C_TRAVEL_ANA'
+define service /DMO/UI_TRAVEL_O4_ANA {
   expose /DMO/C_Travel_ANA as Travel;
 }
