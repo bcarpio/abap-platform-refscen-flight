@@ -20,7 +20,7 @@ CLASS lhc_agency DEFINITION
     CLASS-METHODS class_constructor.
 
   PRIVATE SECTION.
-    METHODS get_global_authorizations FOR GLOBAL AUTHORIZATION IMPORTING REQUEST requested_authorizations FOR /dmo/agency RESULT result.
+*    METHODS get_global_authorizations FOR GLOBAL AUTHORIZATION IMPORTING REQUEST requested_authorizations FOR /dmo/agency RESULT result.
 
     METHODS validatecountrycode FOR VALIDATE ON SAVE IMPORTING keys FOR /dmo/agency~/dmo/validatecountrycode.
 
@@ -45,8 +45,8 @@ CLASS lhc_agency IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_global_authorizations.
-  ENDMETHOD.
+*  METHOD get_global_authorizations.
+*  ENDMETHOD.
 
 
   METHOD validatecountrycode.
@@ -103,7 +103,7 @@ CLASS lhc_agency IMPLEMENTATION.
              TO reported-/dmo/agency.
 
       " Conversion to string to truncate trailing spaces, so + doesn't match space.
-      IF CONV string( agency-emailaddress ) NP '+*@+*.+*'.
+      IF CONV string( agency-emailaddress ) NP '+*@+*.+*' ##OPERATOR[STRING].
 
         APPEND VALUE #( %tky = agency-%tky ) TO failed-/dmo/agency.
 

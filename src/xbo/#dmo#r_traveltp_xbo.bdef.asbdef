@@ -1,0 +1,75 @@
+managed implementation in class /dmo/bp_r_traveltp_xbo unique;
+strict ( 2 );
+extensible;
+with draft;
+
+with cross associations;
+
+define behavior for /DMO/R_TRAVELTP_XBO alias Travel
+persistent table /dmo/a_trvl_xbo
+extensible
+draft table /dmo/d_trvl_xbo query /DMO/R_TravelDraft_XBO
+etag master LocalLastChangedAt
+lock master total etag LastChangedAt
+authorization master ( none )
+{
+  field ( readonly )
+  TravelUuid,
+  AgencyUuid,
+  LocalCreatedBy,
+  LocalCreatedAt,
+  LocalLastChangedBy,
+  LocalLastChangedAt,
+  LastChangedAt;
+
+  field ( numbering : managed )
+  TravelUuid;
+
+  field ( readonly : update, mandatory : create )
+  TravelId;
+
+  create;
+  update;
+  delete;
+
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Edit;
+  draft action Resume;
+  draft determine action Prepare {
+    validation validateDates;
+  }
+
+  validation validateDates on save { create; field BeginDate, EndDate; }
+
+  determine action ( authorization : update ) validateDateRange { validation validateDates; }
+
+  side effects {
+    determine action validateDateRange executed on field BeginDate, field EndDate affects messages;
+  }
+
+  association _Agency {
+    with draft;
+    link action linkAction;
+    unlink action unlinkAction;
+    inverse function inverseFunction;
+  }
+
+  mapping for /dmo/a_trvl_xbo corresponding extensible
+    {
+      BeginDate          = begin_date;
+      TotalPrice         = total_price;
+      CurrencyCode       = currency_code;
+      Description        = description;
+      EndDate            = end_date;
+      LastChangedAt      = last_changed_at;
+      LocalCreatedAt     = local_created_at;
+      LocalCreatedBy     = local_created_by;
+      LocalLastChangedAt = local_last_changed_at;
+      LocalLastChangedBy = local_last_changed_by;
+      TravelId           = travel_id;
+      TravelUUID         = travel_uuid;
+      AgencyUuid         = agency_uuid;
+    }
+
+}

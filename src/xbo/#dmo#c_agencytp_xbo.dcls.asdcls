@@ -1,0 +1,11 @@
+@EndUserText.label: 'Mapping role for /DMO/C_AGENCYTP_XBO'
+@MappingRole: true
+define role /DMO/C_AGENCYTP_XBO {
+  grant
+    select
+      on
+        /DMO/C_AGENCYTP_XBO
+          where
+            inheriting conditions from entity /DMO/R_AGENCYTP_XBO;
+            
+}

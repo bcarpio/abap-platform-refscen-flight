@@ -1,0 +1,60 @@
+managed;
+strict ( 2 );
+extensible;
+with draft;
+
+with cross associations;
+
+define behavior for /DMO/R_AGENCYTP_XBO alias Agency
+persistent table /dmo/a_agncy_xbo
+extensible
+draft table /dmo/d_agncy_xbo query /DMO/R_AgencyDraft_XBO
+etag master LocalLastChangedAt
+lock master total etag LastChangedAt
+authorization master ( none )
+{
+  field ( readonly )
+  AgencyUuid,
+  LocalCreatedBy,
+  LocalCreatedAt,
+  LocalLastChangedBy,
+  LocalLastChangedAt,
+  LastChangedAt;
+
+  field ( numbering : managed )
+  AgencyUuid;
+
+  field ( readonly : update, mandatory : create )
+  AgencyId;
+
+  create;
+  update;
+  delete;
+
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Edit;
+  draft action Resume;
+  draft determine action Prepare;
+
+  association _Travel using /DMO/R_TRAVELTP_XBO \_Agency {
+    create;
+    with draft;
+  }
+
+  mapping for /dmo/a_agncy_xbo corresponding extensible
+    {
+      AgencyUuid         = agency_uuid;
+      AgencyId           = agency_id;
+      Name               = name;
+      City               = city;
+      CountryCode        = country_code;
+      WebAddress         = web_address;
+      LocalCreatedBy     = local_created_by;
+      LocalCreatedAt     = local_created_at;
+      LocalLastChangedBy = local_last_changed_by;
+      LocalLastChangedAt = local_last_changed_at;
+      LastChangedAt      = last_changed_at;
+    }
+
+}

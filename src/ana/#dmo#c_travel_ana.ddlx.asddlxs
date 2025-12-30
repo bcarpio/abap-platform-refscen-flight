@@ -1,0 +1,146 @@
+@Metadata.layer: #CORE
+@UI.headerInfo.title.type: #STANDARD
+@UI.headerInfo.title.value: 'TravelId'
+@UI.headerInfo.description.type: #STANDARD
+@UI.headerInfo.description.value: 'TravelId'
+@UI.presentationVariant: [{ text: 'Default' ,
+                             sortOrder:[{ by: 'OverallStatus', direction: #ASC }],
+                              groupBy: [  'OverallStatus'],
+                              visualizations: [ {  type: #AS_LINEITEM },
+                              {  type: #AS_LINEITEM }] }]
+annotate entity /DMO/C_Travel_ANA with
+{
+  @UI.hidden: true
+  @EndUserText.label: 'Travel UUID'
+  TravelUuid;
+
+  @EndUserText.label: 'TravelID'
+  @UI.facet: [ {
+    label: 'General Information',
+    id: 'GeneralInfo',
+    purpose: #STANDARD,
+    position: 20 ,
+    type: #IDENTIFICATION_REFERENCE
+  } ]
+  @UI.identification: [ {
+    position: 20 ,
+    label: 'TravelID'
+  } ]
+  @UI.lineItem: [ {
+    position: 20 ,
+    label: 'TravelID'
+  } ]
+  @UI.selectionField: [ {
+    position: 20
+  } ]
+  TravelId;
+
+  @EndUserText.label: 'Total Price (#SUM)'
+  @UI.identification: [ {
+    position: 30 ,
+    label: 'Total Price'
+  } ]
+  @UI.lineItem: [ {
+    position: 30 ,
+    label: 'Total Price (#SUM)'
+  } ]
+  TotalPrice;
+
+  @EndUserText.label: 'Booking Fee (#AVG)'
+  @UI.identification: [ {
+    position: 40 ,
+    label: 'Booking Fee'
+  } ]
+  @UI.lineItem: [ {
+    position: 40 ,
+    label: 'Booking Fee (#AVG)'
+  } ]
+  BookingFee;
+
+  @UI.identification: [ {
+  position: 50 ,
+  label: 'MinBookingFee'
+  } ]
+  @UI.lineItem: [ {
+    position: 50 ,
+    label: 'MinBookingFee (#MIN)'
+  } ]
+  MinBookingFee;
+
+  @UI.identification: [ {
+  position: 60 ,
+  label: 'MaxBookingFee'
+  } ]
+  @UI.lineItem: [ {
+    position: 60 ,
+    label: 'MaxBookingFee (#MAX)'
+  } ]
+  MaxBookingFee;
+
+  @UI.identification: [ {
+  position: 70 ,
+  label: 'DifferentCurrencies'
+  } ]
+  @UI.lineItem: [ {
+    position: 70 ,
+    label: 'DifferentCurrencies (#COUNT_DISTINCT)'
+  } ]
+  differentCurrencies;
+
+  @EndUserText.label: 'BeginDate'
+  @UI.identification: [ {
+    position: 80 ,
+    label: 'BeginDate'
+  } ]
+  @UI.lineItem: [ {
+    position: 80 ,
+    label: 'BeginDate'
+  } ]
+  @UI.selectionField: [ {
+    position: 80
+  } ]
+  BeginDate;
+
+  @EndUserText.label: 'EndDate'
+  @UI.identification: [ {
+    position: 90 ,
+    label: 'EndDate'
+  } ]
+  @UI.lineItem: [ {
+    position: 90 ,
+    label: 'EndDate'
+  } ]
+  @UI.selectionField: [ {
+    position: 90
+  } ]
+  EndDate;
+
+  @EndUserText.label: 'OverallStatus'
+  @UI.identification: [ {
+    position: 100 ,
+    label: 'OverallStatus'
+  } ]
+  @UI.lineItem: [ {
+    position: 100 ,
+    label: 'OverallStatus'
+  } ]
+  @UI.selectionField: [ {
+    position: 100
+  } ]
+  OverallStatus;
+
+  @EndUserText.label: 'Description'
+  @UI.identification: [ {
+    position: 110 ,
+    label: 'Description'
+  } ]
+  @UI.lineItem: [ {
+    position: 110 ,
+    label: 'Description'
+  } ]
+  @UI.selectionField: [ {
+    position: 110
+  } ]
+  Description;
+
+}

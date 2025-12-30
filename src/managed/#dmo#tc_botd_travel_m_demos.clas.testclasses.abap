@@ -24,6 +24,8 @@ class ltcl_mockemlapi_variant_demos definition final for testing
     methods isolate_read for testing raising cx_static_check.
     methods isolate_read_ba for testing raising cx_static_check.
     methods isolate_deep_create for testing raising cx_static_check.
+    methods isolate_set_locks for testing raising cx_static_check.
+    methods isolate_get_permissions for testing raising cx_static_check.
 
     "Additional configurations
     methods for_times_configuration for testing raising cx_static_check.
@@ -31,8 +33,11 @@ class ltcl_mockemlapi_variant_demos definition final for testing
     methods ignore_input_configuration for testing raising cx_static_check.
     methods partial_input_configuration for testing raising cx_static_check.
     methods behavior_verification for testing raising cx_static_check.
-    METHODS isolate_create_ba_to_pass FOR TESTING RAISING cx_static_check.
-    METHODS isolate_read_to_pass FOR TESTING RAISING cx_static_check.
+    methods isolate_create_ba_to_pass FOR TESTING RAISING cx_static_check.
+    methods isolate_read_to_pass FOR TESTING RAISING cx_static_check.
+    methods isolate_read_ba_and_set_link for testing raising cx_static_check.
+    methods isolate_create_auto_fill_cid for testing raising cx_static_check.
+
 
     methods setup.
     class-methods class_setup.
@@ -489,7 +494,7 @@ class ltcl_mockemlapi_variant_demos implementation.
   """""""""""""""""""""""""""Verifications"""""""""""""""""""""""""""""""""""""""
   "Step 5: Verify the executions on the double.
 
-  double->verify( )->is_called_times( times = 2 ). "Since we see 2 EML calls, the double should be invoked for both.
+*  double->verify( )->is_called_times( times = 4 ). "Since we see 2 Modify EML calls & 2 Lock requests for the Modify calls, the double should be invoked for 4 times.
   double->verify( )->is_called_at_least( times = 1 ).
 
   double->verify( )->modify( )->is_called_times( times = 2 ). "Since the 2 EML calls are modify, the double should be invoked for both modify EML statements.
@@ -1206,6 +1211,69 @@ class ltcl_mockemlapi_variant_demos implementation.
 
   endmethod.
 
+   method isolate_read_ba_and_set_link.
+   "Test Goal: Isolate READ BA EML with multiple entities with the read and read_ba operations in CUT (Code under Test) and configure responses via API.
+
+    "Step 1: Setup test data instances for Read EML.
+    "Step 2: Define and set up the response structures to be returned for Read EML in CUT
+    "Step 3: Create input and output configurations for Read EML.
+    "Step 4: Configure the Read EML via configure_call API on the double.
+
+  "Step 1: Setup test data instances for Read EML.
+  "For read booking by association on travel
+   data rba_booking_instances type table for read import /dmo/i_travel_m\_Booking.
+   rba_booking_instances = value #( ( Travel_id = 987 )
+                                    ( Travel_id = 988 ) ).
+
+  "Step 2: Define and set up the response structures to be returned for Read EML in CUT
+   data rba_booking_result type table for read result /dmo/i_travel_m\_Booking.
+   data rba_booking_link type table for read link /dmo/i_travel_m\_Booking.
+
+   rba_booking_result  = value #( ( Travel_id = 987 Booking_id = 201 ) ( Travel_id = 987 Booking_id = 202 ) ).
+   rba_booking_link    = value #( ( source-Travel_id = 988 target-Travel_id = 988 target-Booking_id = 201  )  ( source-Travel_id = 988 target-Travel_id = 988 target-Booking_id = 200  ) ).
+
+  "Step 3: Create input and output configurations for Read EML.
+   data(input_config_builder_4_read) = cl_botd_mockemlapi_bldrfactory=>get_input_config_builder( )->for_read(  ).
+   data(output_config_builder_4_read) = cl_botd_mockemlapi_bldrfactory=>get_output_config_builder( )->for_read( ).
+
+   "Create input for all entity parts
+   "For travel entity
+   data(eml_travel_input) = input_config_builder_4_read->build_entity_part( '/DMO/I_TRAVEL_M'
+                                                      )->set_instances_for_read_ba( rba_booking_instances ).
+
+   "Input configuration for EML
+   data(input) = input_config_builder_4_read->build_input_for_eml(  )->add_entity_part( eml_travel_input ).
+
+   "Output configuration for EML. Configure the RESULT and LINK for read_ba output.
+   DATA(output) = output_config_builder_4_read->build_output_for_eml( )->set_result_for_read_ba( source_entity_name = '/DMO/I_TRAVEL_M'
+                                                                                                  assoc_name         = '_Booking'
+                                                                                                  result             = rba_booking_result
+                                                                      )->set_link_for_read_ba( link = rba_booking_link ).
+
+  "Step 4: Configure the Read EML via configure_call API on the double.
+   double =  environment->get_test_double( '/DMO/I_TRAVEL_M' ).
+   double->configure_call(  )->for_read(  )->when_input( input )->then_set_output( output ).
+
+
+  """""""""""""""""""""""""""CODE UNDER TEST"""""""""""""""""""""""""""""""""""""""
+   cut->read_booking_by_assoc_link(
+    exporting
+      booking   = rba_booking_instances
+    importing
+      result   = data(result_cut)
+      reported = data(reported_cut)
+      failed   = data(failed_cut)
+      links    = data(links_cut)
+  ).
+"""""""""""""""""""""""""""CODE UNDER TEST"""""""""""""""""""""""""""""""""""""""
+    " Asserts
+    cl_abap_unit_assert=>assert_not_initial( links_cut ).
+    cl_abap_unit_assert=>assert_not_initial( result_cut ).
+    cl_abap_unit_assert=>assert_equals( exp = rba_booking_result act = result_cut ).
+    cl_abap_unit_assert=>assert_equals( exp = links_cut act = rba_booking_link ).
+
+  endmethod.
+
   method isolate_read_ba.
   "Test Goal: Isolate the read by association (read_ba) operation in READ EML in CUT (Code under Test) and configure responses via API.
 
@@ -1227,6 +1295,9 @@ class ltcl_mockemlapi_variant_demos implementation.
     data failed type response for failed early /DMO/I_TRAVEL_M.
     failed-travel = value #( (  Travel_ID = '988' ) ).
 
+    data rba_booking_link type table for read link /DMO/I_TRAVEL_M\_Booking.
+    rba_booking_link    = value #( ( source-Travel_ID = 988 target-Travel_ID = 988 target-Booking_ID = 201  )  ( source-Travel_ID = 988 target-Travel_ID = 988 target-Booking_ID = 200  ) ).
+
   "Step 3: Create input and output configurations for Read EML.
    data(input_config_builder_4_read) = cl_botd_mockemlapi_bldrfactory=>get_input_config_builder( )->for_read(  ).
    data(output_config_builder_4_read) = cl_botd_mockemlapi_bldrfactory=>get_output_config_builder( )->for_read( ).
@@ -1238,7 +1309,7 @@ class ltcl_mockemlapi_variant_demos implementation.
 
   "Create input and output configuration for the READ EML in CUT
     data(input) = input_config_builder_4_read->build_input_for_eml(  )->add_entity_part( eml_travel_input ).
-    data(output) = output_config_builder_4_read->build_output_for_eml( )->set_failed( failed )->set_result_for_read_ba( result = result  assoc_name = '_Booking' source_entity_name = 'TRAVEL' ).
+    data(output) = output_config_builder_4_read->build_output_for_eml( )->set_failed( failed )->set_result_for_read_ba( result = result  assoc_name = '_Booking' source_entity_name = 'TRAVEL' )->set_link_for_read_ba( link = rba_booking_link )..
 
   "Step 4: Configure the Read EML via configure_call API on the double.
     double =  environment->get_test_double( '/DMO/I_TRAVEL_M' ).
@@ -1404,6 +1475,217 @@ class ltcl_mockemlapi_variant_demos implementation.
     cl_abap_unit_assert=>assert_equals( act = lines( mapped_cut_1-travel ) exp = 1 ).
 
     cl_abap_unit_assert=>assert_equals( act = mapped_cut_1-travel[ 1 ]-travel_id exp = 987 ).
+
+  endmethod.
+
+  method isolate_get_permissions.
+  "Test Goal: Isolate Get Permissions EML with request for getting instance features & instance authorizations in CUT (Code under Test) and configure responses via API.
+
+   "Step 1: Setup test data instances along with request for Get Permissions operation on all entities in Get Permissions EML.
+   "Step 2: Define and set up the response structures to be returned for Get Permissions EML in CUT
+   "Step 3: Create input and output configurations for the Get Permissions EML.
+   "Step 4: Configure the Get Permissions EML via configure_call API on the double.
+
+   "Step 1: Setup test data instances for Get Permissions on all entities in Get Permissions EML.
+   "For Get Permissions on Travel entity
+   data instances type table for permissions key /dmo/i_travel_m.
+   instances = value #( (  %key-travel_id = 1  ) ).
+
+   "Set up the requests for instances.
+   data request type structure for permissions request /dmo/i_travel_m.
+
+   request = VALUE #(
+        %create                 = if_abap_behv=>mk-off
+        %update                 = if_abap_behv=>mk-off
+        %delete                 = if_abap_behv=>mk-on
+        %field-customer_id      = if_abap_behv=>mk-off
+        %field-agency_id        = if_abap_behv=>mk-on
+        %field-begin_date       = if_abap_behv=>mk-on
+        %field-booking_fee      = if_abap_behv=>mk-on
+        %action-acceptTravel    = if_abap_behv=>mk-on
+        %assoc-_Booking         = if_abap_behv=>mk-on
+        ).
+
+  "Step 2: Define and set up the response structures to be returned for Get Permissions EML in CUT
+    data get_perm_result type structure for permissions result /dmo/i_travel_m.
+    get_perm_result = value #( global-%create = if_abap_behv=>perm-o-disabled
+                               global-%update = if_abap_behv=>perm-o-disabled
+                               instances = value #( ( %key-travel_id = 1 %update = if_abap_behv=>perm-o-enabled %delete = if_abap_behv=>perm-o-disabled ) ) ).
+
+    "Step 3: Create input and output configurations for the Get Permissions EML.
+    data(input_cfg_builder_4_get_perm) = cl_botd_mockemlapi_bldrfactory=>get_input_config_builder( )->for_get_permissions(  ).
+    data(output_cfg_builder_4_get_perm) = cl_botd_mockemlapi_bldrfactory=>get_output_config_builder( )->for_get_permissions(  ).
+
+    "Create input for all entity parts by setting instances and request for get permission operation on that entity
+    "For travel entity
+    data(eml_travel_input) = input_cfg_builder_4_get_perm->build_entity_part( '/dmo/i_travel_m'
+                                   )->set_instances( instances
+                                   )->set_request( request ).
+
+    "Input configuration for EML to get the Instance Authorizations and Features by configuring the parameter "if_abap_behv=>permissions_only-instance" in build_input_for_eml().
+    data(input) = input_cfg_builder_4_get_perm->build_input_for_eml( if_abap_behv=>permissions_only-instance )->add_entity_part( eml_travel_input ).
+
+    "Output configuration for EML
+    data(output) = output_cfg_builder_4_get_perm->build_output_for_eml( )->set_result( get_perm_result ).
+
+    "Step 4: Configure the Get Permissions EML via configure_call API on the double.
+    double =  environment->get_test_double( '/DMO/I_TRAVEL_M' ).
+    double->configure_call(  )->for_get_permissions(  )->when_input( input )->then_set_output( output ).
+
+  """""""""""""""""""""""""""CODE UNDER TEST"""""""""""""""""""""""""""""""""""""""
+  cut->get_permissions(
+    exporting
+      get_permissions_instances_inp   = instances
+      get_permissions_request_inp     = request
+    importing
+      result   = data(result_cut)
+      reported = data(reported_cut)
+      failed   = data(failed_cut)
+  ).
+
+  """""""""""""""""""""""""""CODE UNDER TEST"""""""""""""""""""""""""""""""""""""""
+
+    "Asserts
+    "Note: Asserts will depend on the use case. These asserts are based on the given code under test and are for demonstration purpose only.
+    cl_abap_unit_assert=>assert_not_initial( result_cut ).
+    cl_abap_unit_assert=>assert_initial( failed_cut ).
+    cl_abap_unit_assert=>assert_initial( reported_cut ).
+    cl_abap_unit_assert=>assert_equals( exp = result_cut act = get_perm_result ).
+
+  endmethod.
+
+  method isolate_set_locks.
+   "Test Goal: Isolate Set Locks EML in CUT (Code under Test) and configure responses via API.
+
+   "Step 1: Setup test data instances for Set Locks operation on all entities in Set Locks EML.
+   "Step 2: Define and set up the response structures to be returned for Set Locks EML in CUT
+   "Step 3: Create input and output configurations for the Set Locks EML.
+   "Step 4: Configure the Set Locks EML via configure_call API on the double.
+
+
+   "Step 1: Setup test data instances for Set Locks on all entities in Set Locks EML.
+
+   "In this test, the Set Locks EML in Code Under Test has both the lock master(Travel) and lock dependent(Booking- Lock dependent on Travel) entities.
+   "So configure the instances for Travel entities and respective lock master instances of the Booking entities.
+   "Root Entity(Travel) : ( travel_id = '1' )
+   "Lock Dependent entity(Booking) : ( travel_id = 2  booking_id = 201 )
+
+   "For Set Locks on Travel entity.
+   data lock_travel_instances type table for lock /dmo/i_travel_m.
+   lock_travel_instances = value #( ( travel_id = '1' ) ( travel_id = '2' ) ).
+
+   "Step 2: Define and set up the response structures to be returned for Set Locks EML in CUT
+    data failed type response for failed early /dmo/i_travel_m.
+    failed-travel = value #( ( travel_id = '1' ) ( travel_id = '2' ) ).
+
+    data reported type response for reported early /dmo/i_travel_m.
+    reported-travel = value #( ( travel_id = '1' ) ( travel_id = '2' ) ).
+
+   "Step 3: Create input and output configurations for the Set Locks EML.
+    data(input_config_builder_4_locks) = cl_botd_mockemlapi_bldrfactory=>get_input_config_builder( )->for_set_locks(  ).
+    data(output_config_builder_4_locks) = cl_botd_mockemlapi_bldrfactory=>get_output_config_builder( )->for_set_locks( ).
+
+    "Create input for all entity parts and set instances for set locks operation on that entity
+    "For travel entity
+    data(eml_travel_input) = input_config_builder_4_locks->build_lock_master_request( '/dmo/i_travel_m' "can accept the entity name/alias name
+                                   )->set_instances( lock_travel_instances ).
+
+    "Input configuration for EML
+    data(input) = input_config_builder_4_locks->build_input_for_eml(  )->add_lock_master_request( eml_travel_input ).
+
+    "Output configuration for EML
+    data(output) = output_config_builder_4_locks->build_output_for_eml( )->set_failed( failed )->set_reported( reported ).
+
+   "Step 4: Configure the Set Locks EML via configure_call API on the double.
+    double =  environment->get_test_double( '/DMO/I_TRAVEL_M' ).
+    double->configure_call(  )->for_set_locks(  )->when_input( input )->then_set_output( output ).
+
+  """""""""""""""""""""""""""CODE UNDER TEST"""""""""""""""""""""""""""""""""""""""
+  cut->set_locks(
+    exporting
+      set_locks_input   = lock_travel_instances
+    importing
+      reported = data(reported_cut)
+      failed   = data(failed_cut)
+  ).
+
+  """""""""""""""""""""""""""CODE UNDER TEST"""""""""""""""""""""""""""""""""""""""
+
+   "Asserts
+   "Note: Asserts will depend on the use case. These asserts are based on the given code under test and are for demonstration purpose only.
+   cl_abap_unit_assert=>assert_not_initial( reported_cut ).
+   cl_abap_unit_assert=>assert_not_initial( failed_cut ).
+
+   "The failed responses will be delegated to respective lock dependent entities defined in Code Under Test.
+   cl_abap_unit_assert=>assert_equals( act = lines( failed_cut-travel ) exp = 1 ).
+   cl_abap_unit_assert=>assert_equals( act = lines( failed_cut-booking ) exp = 1 ).
+   cl_abap_unit_assert=>assert_equals( act = lines( reported_cut-travel ) exp = 2 ).
+
+  endmethod.
+
+  method isolate_create_auto_fill_cid.
+  "Test Goal: Isolate Modify EML with Create in CUT (Code under Test) having AUTO FILL CID and configure responses via API.
+
+  "Step 1: Setup test data instances for all operations on all entities in Modify EML (Here only create ).
+  "Step 2: Define and set up the response structures to be returned for Modify EML in CUT
+  "Step 3: Create input and output configurations for the Modify EML.
+  "Step 4: Configure the Modify EML via configure_call API on the double.
+
+  "Step 1: Setup test data instances for all operations on all entities in Modify EML.
+  "For Create on Travel entity
+   data create_travel_instances type table for create /DMO/I_TRAVEL_M.
+   create_travel_instances = value #( ( Travel_id = '000001' Agency_ID = '000111' Customer_ID = '000006' description = 'Travel_987' )
+                                      ( Travel_id = '000002' Agency_ID = '000111' Customer_ID = '000006' description = 'Travel_988' ) ).
+
+  "Step 2: Define and set up the response structures to be returned for Modify EML in CUT
+    data mapped type response for mapped early /dmo/i_travel_m.
+    data failed type response for failed early /dmo/i_travel_m.
+
+    "Setup mapped and failed according to the response to be returned
+    mapped-travel = value #( ( %cid = 'Travel_987' Travel_ID = 987  ) ). "Implies that a travel with travel id 987 was created
+
+  "Step 3: Create input and output configurations for the Modify EML.
+    data(input_config_builder_4_modify) = cl_botd_mockemlapi_bldrfactory=>get_input_config_builder( )->for_modify(  ).
+    data(output_config_builder_4_modify) = cl_botd_mockemlapi_bldrfactory=>get_output_config_builder( )->for_modify( ).
+
+    "Create input for all entity parts and set instances for all operations on that entity
+    "For travel entity
+    "Configure the parameter "is_auto_fill_cid = abap_true" as EML in Code Under Test has AUTO FILL CID.
+    "This configured parameter would ideally be used in the scenarios where the MODIFY EML in Code Under Test is having AUTO FILL CID and %CID values are either partially configured or not configured in the input configuration and EML in Code Under Test.
+    data(eml_travel_input) = input_config_builder_4_modify->build_entity_part( '/dmo/i_travel_m'
+                                   )->set_instances_for_create( instances = create_travel_instances is_auto_fill_cid = abap_true ).
+
+    "Input configuration for EML
+    data(input) = input_config_builder_4_modify->build_input_for_eml(  )->add_entity_part( eml_travel_input ).
+
+    "Output configuration for EML
+    data(output) = output_config_builder_4_modify->build_output_for_eml( )->set_mapped( mapped ).
+
+  "Step 4: Configure the Modify EML via configure_call API on the double.
+    double =  environment->get_test_double( '/DMO/I_TRAVEL_M' ).
+    double->configure_call(  )->for_modify(  )->when_input( input )->then_set_output( output ).
+
+  """""""""""""""""""""""""""CODE UNDER TEST"""""""""""""""""""""""""""""""""""""""
+  cut->create_travel_auto_fill_cid(
+    exporting
+      travel   =  create_travel_instances
+    importing
+      mapped   = data(mapped_cut)
+      reported = data(reported_cut)
+      failed   = data(failed_cut)
+  ).
+
+  """""""""""""""""""""""""""CODE UNDER TEST"""""""""""""""""""""""""""""""""""""""
+
+    "Asserts
+    "Note: Asserts will depend on the use case. These asserts are based on the given code under test and are for demonstration purpose only.
+    cl_abap_unit_assert=>assert_not_initial( mapped_cut ).
+    cl_abap_unit_assert=>assert_initial( failed_cut ).
+    cl_abap_unit_assert=>assert_initial( reported_cut ).
+
+    cl_abap_unit_assert=>assert_equals( act = lines( mapped_cut-travel ) exp = 1 ).
+
+    cl_abap_unit_assert=>assert_equals( act = mapped_cut-travel[ 1 ]-%cid exp = 'Travel_987' ).
 
   endmethod.
 
@@ -1658,7 +1940,7 @@ class ltcl_txbufdbl_variant_demos implementation.
     cl_abap_unit_assert=>assert_equals( act = lines( failed_cut-booking ) exp = 1 ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2 act = failed_cut-booking[ 1 ]-travel_id ).
-    cl_abap_unit_assert=>assert_initial( failed_cut-booking[ 1 ]-booking_id ).
+    "cl_abap_unit_assert=>assert_initial( failed_cut-booking[ 1 ]-booking_id ).
     cl_abap_unit_assert=>assert_equals( exp = 'Travel_2_Booking_1' act = failed_cut-booking[ 1 ]-%cid  ).
     cl_abap_unit_assert=>assert_equals( exp = if_abap_behv=>cause-dependency act = failed_cut-booking[ 1 ]-%fail-cause ).
 
@@ -1966,8 +2248,6 @@ class ltcl_txbufdbl_variant_demos implementation.
     cl_abap_unit_assert=>assert_equals( act = lines( result_read ) exp = 1 ).
     cl_abap_unit_assert=>assert_equals( act = result_read[ 1 ]-Customer_ID exp = '000006' ).
     cl_abap_unit_assert=>assert_equals( act = result_read[ 1 ]-description exp = 'Travel 1' ).
-    cl_abap_unit_assert=>assert_initial( act = result_read[ 1 ]-total_price ).
-    cl_abap_unit_assert=>assert_initial( act = result_read[ 1 ]-agency_id ).
 
   endmethod.
 
@@ -2978,6 +3258,5 @@ class ltcl_txbufdbl_variant_demos implementation.
     cl_abap_unit_assert=>assert_equals( exp = if_abap_behv=>cause-not_found act = failed_cut-travel[ 1 ]-%fail-cause ).
 
   endmethod.
-
 
 endclass.

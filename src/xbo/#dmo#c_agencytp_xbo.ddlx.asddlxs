@@ -1,0 +1,50 @@
+@Metadata.layer: #CORE
+
+@UI.headerInfo: { typeName: 'Agency',
+                  typeNamePlural: 'Agencies',
+                  title: { type: #STANDARD, value: 'Name' },
+                  description: { type: #STANDARD, value: 'AgencyId' } }
+
+@UI.presentationVariant: [ { sortOrder: [ { by: 'AgencyId', direction: #ASC } ],
+                             visualizations: [ { type: #AS_LINEITEM } ] } ]
+
+annotate view /DMO/C_AGENCYTP_XBO with
+
+{
+  @UI.facet: [ { id: 'Agency',
+                 purpose: #STANDARD,
+                 type: #IDENTIFICATION_REFERENCE,
+                 label: 'Agency',
+                 position: 10 },
+               { id: 'Travel',
+                 purpose: #STANDARD,
+                 type: #LINEITEM_REFERENCE,
+                 label: 'Travel',
+                 position: 20,
+                 targetElement: '_Travel' } ]
+  @UI.lineItem: [ { position: 10, importance: #HIGH } ]
+  @UI.selectionField: [ { position: 10 } ]
+  @UI.textArrangement: #TEXT_SEPARATE
+  AgencyId;
+
+  @UI.identification: [ { position: 20 } ]
+  @UI.lineItem: [ { position: 20, importance: #HIGH } ]
+  @UI.selectionField: [ { position: 20 } ]
+  Name;
+
+  @UI.identification: [ { position: 50 } ]
+  @UI.lineItem: [ { position: 50, label: 'Address' } ]
+  @UI.selectionField: [ { position: 50 } ]
+  City;
+
+  @UI.identification: [ { position: 60 } ]
+  @UI.selectionField: [ { position: 60 } ]
+  @UI.textArrangement: #TEXT_FIRST
+  CountryCode;
+
+  @UI.identification: [ { position: 90 } ]
+  WebAddress;
+
+  @UI.hidden: true
+  LocalLastChangedAt;
+}
