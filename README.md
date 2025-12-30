@@ -8,8 +8,7 @@ The ABAP Flight Reference Scenario provides sample data and services as well as 
 
 For more information, see [Downloading the ABAP Flight Reference Scenario](https://help.sap.com/docs/abap-cloud/abap-rap/downloading-abap-flight-reference-scenario?locale=en-US).
 
-**Note:**  
-The branches of this repository were renamed recently. If you have already linked an ABAP Package to a branch with an outdated name, unlink the repository first and then pull the link to the branch with the new name, as described in step 3 of the <em>Download</em> section.
+> ℹ️ The branches of this repository were renamed recently. If you have already linked an ABAP Package to a branch with an outdated name, unlink the repository first and then pull the link to the branch with the new name, as described in step 3 of the <em>Download</em> section.
 
 ## Prerequisites
 
@@ -37,16 +36,16 @@ As a result of the installation procedure above, the ABAP system creates an inac
 
 - `/DMO/FLIGHT_ANA` - contains the development objects showcasing a readonly scenario with an analytical table, used for in-depth data analysis and visualization (see [Developing Read-Only RAP Analytical Tables](https://help.sap.com/docs/abap-cloud/abap-rap/developing-read-only-rap-analytical-tables?locale=en-US)).
 - `/DMO/FLIGHT_COLLDRAFT`contains the development objects showcasing a collaborative draft scenario (see [Developing Transactional Apps with Collaborative Draft Capabilities](https://help.sap.com/docs/abap-cloud/abap-rap/adding-collaboration-capability-to-draft-enabled-managed-business-object?locale=en-US)).
-- `/DMO/FLIGHT_DRAFT` - represents the transactional app with <em>draft</em> (see [Developing Transactional Apps with Draft Capabilities](https://help.sap.com/docs/abap-cloud/abap-rap/developing-transactional-apps-with-draft-capabilities?locale=en-US).
+- `/DMO/FLIGHT_DRAFT` - represents the transactional app with <em>draft</em> (see [Developing Transactional Apps with Draft Capabilities](https://help.sap.com/docs/abap-cloud/abap-rap/developing-transactional-apps-with-draft-capabilities?locale=en-US)).
 - `/DMO/FLIGHT_HIERARCHY` - contains the development objects showcasing hierarchies in a read-only and an editable treeview scenario (see [Developing Apps with Hierarchical Data Structures](https://help.sap.com/docs/abap-cloud/abap-rap/implementing-hierarchical-view?locale=en-US)).
 - `/DMO/FLIGHT_LEGACY` The legacy package contains objects that are used for the unmanaged scneario to implement a brownfield scenario, for which the business logic is already implemented in legacy objects.
-- `/DMO/FLIGHT_MANAGED` - represents the transactional app with implementation type <em>managed</em> (see [Developing Managed Transactional Apps](https://help.sap.com/docs/abap-cloud/abap-rap/developing-managed-transactional-apps?locale=en-US).
-- `/DMO/FLIGHT_READONLY` - represents a read-only list reporting app (see [Developing Read-Only List Reporting Apps]([https://help.sap.com/docs/BTP/923180ddb98240829d935862025004d6/504035c0850f44f787f5b81e35791d10.html](https://help.sap.com/docs/abap-cloud/abap-rap/developing-read-only-list-reporting-apps?locale=en-US)).
-- `/DMO/FLIGHT_REUSE` The reuse package contains a package for the supplement business object `/DMO/FLIGHT_REUSE_SUPPLEMENT`, which is reused in the other development scenarios. The reuse package also contains the package `/DMO/FLIGHT_REUSE_CARRIER`, which contains a mulit-inline-edit scenario for maintaining carrier data (see [Developing Transactional Apps with Multi-Inline-Edit Capabilities](https://help.sap.com/docs/abap-cloud/abap-rap/developing-transactional-apps-with-multi-inline-edit-capabilities?locale=en-US)). Lastly, the reuse package contains the package `/DMO/FLIGHT_REUSE_AGENCY` which incorporates a business object for administering agency master data, including the possibility of maintaining Large Objects. The business object is extensibility-enabled as described in the RAP extensibility guide (see [Extend](https://help.sap.com/docs/abap-cloud/abap-rap/extend?locale=en-US). This extensibility guide also contains examples on how to develop extensions for the business object. These code examples are contained in sub packages of the `/DMO/FLIGHT_REUSE_AGENCY` package.
-- `/DMO/FLIGHT_UNMANAGED` - represents the transactional app with implementation type <em>unmanaged</em> (see [Developing Unmanaged Transactional Apps](https://help.sap.com/docs/abap-cloud/abap-rap/developing-unmanaged-transactional-apps?locale=en-US).
+- `/DMO/FLIGHT_MANAGED` - represents the transactional app with implementation type <em>managed</em> (see [Developing Managed Transactional Apps](https://help.sap.com/docs/abap-cloud/abap-rap/developing-managed-transactional-apps?locale=en-US)).
+- `/DMO/FLIGHT_READONLY` - represents a read-only list reporting app (see [Developing Read-Only List Reporting Apps]([https://help.sap.com/docs/BTP/923180ddb98240829d935862025004d6/504035c0850f44f787f5b81e35791d10.html](https://help.sap.com/docs/abap-cloud/abap-rap/developing-read-only-list-reporting-apps?locale=en-US))).
+- `/DMO/FLIGHT_REUSE` The reuse package contains a package for the supplement business object `/DMO/FLIGHT_REUSE_SUPPLEMENT`, which is reused in the other development scenarios. The reuse package also contains the package `/DMO/FLIGHT_REUSE_CARRIER`, which contains a mulit-inline-edit scenario for maintaining carrier data (see [Developing Transactional Apps with Multi-Inline-Edit Capabilities](https://help.sap.com/docs/abap-cloud/abap-rap/developing-transactional-apps-with-multi-inline-edit-capabilities?locale=en-US)). Lastly, the reuse package contains the package `/DMO/FLIGHT_REUSE_AGENCY` which incorporates a business object for administering agency master data, including the possibility of maintaining Large Objects. The business object is extensibility-enabled as described in the RAP extensibility guide (see [Extend](https://help.sap.com/docs/abap-cloud/abap-rap/extend?locale=en-US)). This extensibility guide also contains examples on how to develop extensions for the business object. These code examples are contained in sub packages of the `/DMO/FLIGHT_REUSE_AGENCY` package.
+- `/DMO/FLIGHT_UNMANAGED` - represents the transactional app with implementation type <em>unmanaged</em> (see [Developing Unmanaged Transactional Apps](https://help.sap.com/docs/abap-cloud/abap-rap/developing-unmanaged-transactional-apps?locale=en-US)).
 - `/DMO/FLIGHT_XBO` - contains the development objects showcasing a transactional application with two draft enabled business objects connected via <em>with cross associations</em> and <em>Draft Scope</em> capabilities (see [Developing Cross-BO Scenarios with Draft Scope](https://help.sap.com/docs/abap-cloud/abap-rap/developing-transactional-apps-with-draft-enabled-cross-bo-capabilities?locale=en-US)).
 
-NOTE: The service bindings of the develop scenarios are imported with the warning: `To enable activation of local service endpoint, generate service artifacts`.
+> ℹ️ The service bindings of the develop scenarios are imported with the warning: `To enable activation of local service endpoint, generate service artifacts`.
 
 ## Configuration
 
@@ -71,7 +70,7 @@ To fill the demo database tables for develop scenarios with sample business data
 1. Expand the package structure in the Project Explorer `/DMO/FLIGHT_LEGACY` > `Source Code Library` > `Classes`.
 2. Select the data generator class `/DMO/CL_FLIGHT_DATA_GENERATOR` and press `F9` (Run as Console Application).
 
-NOTE: The namespace /DMO/ is reserved for the demo content. Apart from the downloaded demo content, do not use the namespace /DMO/ and do not create any development objects in the downloaded packages. You can access the development objects in /DMO/ from your own namespace.
+> ℹ️ The namespace /DMO/ is reserved for the demo content. Apart from the downloaded demo content, do not use the namespace /DMO/ and do not create any development objects in the downloaded packages. You can access the development objects in /DMO/ from your own namespace.
 
 ## How to obtain support
 
@@ -79,5 +78,5 @@ This project is provided "as-is": there is no guarantee that raised issues will 
 
 ## License
 
-Copyright (c) 2018-2023 SAP SE or an SAP affiliate company. All rights reserved.
+Copyright (c) 2018-2025 SAP SE or an SAP affiliate company. All rights reserved.
 This project is licensed under the SAP Sample Code License except as noted otherwise in the [LICENSE](LICENSES/Apache-2.0.txt) file.
