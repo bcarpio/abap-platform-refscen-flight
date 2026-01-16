@@ -1,0 +1,14 @@
+# OutcomeOps configuration for SAP ABAP Flight Reference Scenario
+# This repo uses abapGit format with ABAP source files
+
+code_generation:
+  backend: abap
+  source_roots:
+    - src
+
+# Ingest XML metadata files from src/ as documentation
+# These contain ABAP object definitions (classes, interfaces, tables, etc.)
+ingestion:
+  docs_paths:
+    - docs
+    - src
